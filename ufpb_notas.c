@@ -1,119 +1,184 @@
 #include <stdio.h>
+#include <math.h>
 
-#define MIN_FREQ 75
-#define MED_PARA_MEDIA 7.0
-#define MED_PARA_FINAL 5.0
-#define LIMITE_MEDIA 4.0
+#define N_MIN 7.0
+#define N_FINAL 5.0
+#define M_FINAL 4.0
+#define SOMA_OK 21.0
+#define MAX 100
+#define FLAG_REP -1.0
+#define FLAG_IMP -2.0
 
-float media3(float n1, float n2, float n3) {
-    return (n1 + n2 + n3) / 3.0;
+float media3(float x, float y, float z) {
+    return (x + y + z) / 3.0f;
 }
 
-float calc_CRA(float notas[], int qtd) {
-    float soma = 0;
-    for (int i = 0; i < qtd; i++) soma += notas[i];
-    return soma / qtd;
+float calc_cra(float n[], int h[], int q) {
+    float sp = 0.0f;
+    int st = 0;
+    for (int i = 0; i < q; i++) {
+        sp += n[i] * h[i];
+        st += h[i];
+    }
+    return (st == 0) ? 0.0f : sp / st;
 }
 
-// Final
 float nota_final(float m) {
-    if (m < LIMITE_MEDIA) return -1.0; // Reprovação direta
-    float nf = (5 * 10 - 6 * m) / 4.0;
-    if (nf > 10.0) return -2.0; // Impossível
-    return nf;
+    if (m < M_FINAL) return FLAG_REP;
+    float nf = (N_FINAL * 2.0f) - m;
+    return (nf > 10.0f) ? FLAG_IMP : nf;
 }
 
-void final_needed() {
+void precisa_final() {
     float m;
-    printf("Digite sua média das provas (antes da final): ");
-    scanf("%f", &m);
+    printf("Média antes da final: ");
+    if (scanf("%f", &m) != 1 || m < 0 || m > 10) {
+        printf("Entrada inválida.\n");
+        while (getchar() != '\n');
+        return;
+    }
 
     float nf = nota_final(m);
 
-    if (nf == -1.0) {
-        printf("Reprovado direto. Média menor que %.1f.\n", LIMITE_MEDIA);
-    } else if (nf == -2.0) {
-        printf("Mesmo tirando 10 na final, não é possível ser aprovado.\n");
+    if (fabs(nf - FLAG_REP) < 0.001f) {
+        printf("Reprovado direto. Média < %.1f\n", M_FINAL);
+    } else if (fabs(nf - FLAG_IMP) < 0.001f) {
+        printf("Mesmo com 10 na final, não passa.\n");
     } else {
-        float media_final = (6 * m + 4 * nf) / 10;
-        printf("Você precisa tirar %.2f na final para alcançar média %.2f.\n", nf, media_final);
+        printf("Tirando %.2f na final, média final será %.2f\n", nf, (m + nf) / 2.0f);
+        printf("Com 10 na final, média será %.2f\n", (m + 10.0f) / 2.0f);
     }
 }
 
-void passar_por_media() {
-    int qtd;
-    printf("Quantas notas você já tem (1 ou 2)? ");
-    scanf("%d", &qtd);
+void precisa_passar() {
+    int q;
+    printf("Quantas notas já tem (1 ou 2)? ");
+    if (scanf("%d", &q) != 1) {
+        printf("Entrada inválida.\n");
+        while (getchar() != '\n');
+        return;
+    }
 
-    if (qtd == 1) {
-        float n1;
+    if (q == 1) {
+        float a;
         printf("Nota 1: ");
-        scanf("%f", &n1);
-        float soma = MED_PARA_MEDIA * 3 - n1;
-        if (soma > 20) {
-            printf("Mesmo com 10 nas outras, não dá para passar.\n");
-        } else {
-            printf("Precisa somar %.2f nas próximas duas provas.\n", soma);
+        if (scanf("%f", &a) != 1 || a < 0 || a > 10) {
+            printf("Nota inválida.\n");
+            while (getchar() != '\n');
+            return;
         }
-    } else if (qtd == 2) {
-        float n1, n2;
-        printf("Nota 1: "); scanf("%f", &n1);
-        printf("Nota 2: "); scanf("%f", &n2);
-        float n3 = MED_PARA_MEDIA * 3 - (n1 + n2);
-        if (n3 <= 10.0) {
-            printf("Precisa tirar %.2f na terceira prova para passar.\n", n3);
+
+        float faltam = SOMA_OK - a;
+        if (faltam > 20.0f)
+            printf("Mesmo com 10 nas duas, não passa.\n");
+        else {
+            printf("Precisa de soma %.2f nas próximas duas. Ex: duas de %.2f\n", faltam, faltam / 2.0f);
+        }
+
+    } else if (q == 2) {
+        float a, b;
+        printf("Nota 1: ");
+        scanf("%f", &a);
+        printf("Nota 2: ");
+        scanf("%f", &b);
+
+        if (a < 0 || a > 10 || b < 0 || b > 10) {
+            printf("Notas devem estar entre 0 e 10.\n");
+            return;
+        }
+
+        float c = SOMA_OK - (a + b);
+        if (c <= 10.0f) {
+            printf("Precisa de %.2f na terceira prova.\n", c);
         } else {
-            printf("Não passa direto. Verificando final...\n");
-            float m = (n1 + n2) / 2;
-            float nf = nota_final(m);
-            if (nf >= 0) {
-                printf("Com média %.2f, você precisa de %.2f na final.\n", m, nf);
-            } else {
-                printf("Não há como passar.\n");
+            printf("Não dá pra passar só com a terceira prova.\n");
+
+            float men = (a < b) ? a : b;
+            float mai = (a > b) ? a : b;
+            int tent = 0;
+
+            printf("Testando reposição de %.1f:\n", men);
+            for (float nova = men + 0.5f; nova <= 10.0f; nova += 0.5f) {
+                float soma = nova + mai;
+                float novo_c = SOMA_OK - soma;
+                if (novo_c <= 10.0f) {
+                    printf("- Repondo %.1f por %.1f e tirando %.1f, passa.\n", men, nova, novo_c);
+                    tent++;
+                }
+                if (tent == 3) break;
+            }
+
+            if (tent == 0) {
+                printf("Nem com reposição é possível.\n");
+                float mp = (a + b) / 2.0f;
+                float nf = nota_final(mp);
+
+                if (fabs(nf - FLAG_REP) < 0.001f)
+                    printf("Reprovado direto. Média < %.1f\n", M_FINAL);
+                else if (fabs(nf - FLAG_IMP) < 0.001f)
+                    printf("Mesmo com 10, não passa.\n");
+                else
+                    printf("Precisa de %.2f na final.\n", nf);
             }
         }
+
     } else {
-        printf("Entrada inválida. Digite 1 ou 2.\n");
+        printf("Quantidade inválida. Use 1 ou 2.\n");
     }
 }
 
 int main() {
     int op;
     do {
-        printf("\n=== SISTEMA UFPB ===\n");
+        printf("\n--- UFPB - MENU ---\n");
         printf("1. Calcular média da disciplina\n");
         printf("2. Calcular CRA\n");
-        printf("3. Ver nota mínima na final\n");
-        printf("4. Quanto preciso para passar por média\n");
+        printf("3. Quanto preciso na final\n");
+        printf("4. Quanto preciso pra passar por média\n");
         printf("0. Sair\n");
         printf("Opção: ");
-        scanf("%d", &op);
+        if (scanf("%d", &op) != 1) {
+            printf("Entrada inválida.\n");
+            while (getchar() != '\n');
+            continue;
+        }
 
         switch (op) {
             case 1: {
-                float a, b, c;
-                printf("Digite as 3 notas: ");
-                scanf("%f %f %f", &a, &b, &c);
-                printf("Média: %.2f\n", media3(a, b, c));
+                float x, y, z;
+                printf("Digite as três notas: ");
+                scanf("%f %f %f", &x, &y, &z);
+                if (x < 0 || x > 10 || y < 0 || y > 10 || z < 0 || z > 10) {
+                    printf("Notas inválidas.\n");
+                    break;
+                }
+                printf("Média: %.2f\n", media3(x, y, z));
                 break;
             }
             case 2: {
-                int qtd;
+                int q;
                 printf("Quantas disciplinas? ");
-                scanf("%d", &qtd);
-                float n[qtd];
-                for (int i = 0; i < qtd; i++) {
-                    printf("Nota %d: ", i + 1);
-                    scanf("%f", &n[i]);
+                scanf("%d", &q);
+                if (q <= 0 || q > MAX) {
+                    printf("Inválido.\n");
+                    break;
                 }
-                printf("CRA: %.2f\n", calc_CRA(n, qtd));
+                float n[MAX];
+                int h[MAX];
+                for (int i = 0; i < q; i++) {
+                    printf("Média %d: ", i + 1);
+                    scanf("%f", &n[i]);
+                    printf("Carga horária %d: ", i + 1);
+                    scanf("%d", &h[i]);
+                }
+                printf("CRA: %.2f\n", calc_cra(n, h, q));
                 break;
             }
             case 3:
-                final_needed();
+                precisa_final();
                 break;
             case 4:
-                passar_por_media();
+                precisa_passar();
                 break;
             case 0:
                 printf("Saindo...\n");
