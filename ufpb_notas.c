@@ -103,7 +103,7 @@ void quanto_precisa_passar_por_media() {
 
             if (nova_n3 <= 10.0) {
                 printf("- Repondo %.1f por %.1f e tirando %.1f na terceira prova, você passa por média.\n",
-                    menor, nova, nova_n3);
+                       menor, nova, nova_n3);
                 tentativas++;
             }
 
@@ -142,40 +142,40 @@ int main() {
         scanf("%d", &opcao);
 
         switch (opcao) {
-            case 1: {
-                float n1, n2, n3;
-                printf("Digite as três notas: ");
-                scanf("%f %f %f", &n1, &n2, &n3);
-                printf("Média: %.2f\n", calcular_media(n1, n2, n3));
+        case 1: {
+            float n1, n2, n3;
+            printf("Digite as três notas: ");
+            scanf("%f %f %f", &n1, &n2, &n3);
+            printf("Média: %.2f\n", calcular_media(n1, n2, n3));
+            break;
+        }
+        case 2: {
+            int quant;
+            printf("Quantas notas deseja inserir para calcular o CRA? ");
+            scanf("%d", &quant);
+            if (quant <= 0 || quant > 100) {
+                printf("Quantidade inválida.\n");
                 break;
             }
-            case 2: {
-                int quant;
-                printf("Quantas notas deseja inserir para calcular o CRA? ");
-                scanf("%d", &quant);
-                if (quant <= 0 || quant > 100) {
-                    printf("Quantidade inválida.\n");
-                    break;
-                }
-                float notas[quant];
-                for (int i = 0; i < quant; i++) {
-                    printf("Nota %d: ", i + 1);
-                    scanf("%f", &notas[i]);
-                }
-                printf("CRA: %.2f\n", calcular_CRA(notas, quant));
-                break;
+            float notas[quant];
+            for (int i = 0; i < quant; i++) {
+                printf("Nota %d: ", i + 1);
+                scanf("%f", &notas[i]);
             }
-            case 3:
-                quanto_precisa_tirar_na_final();
-                break;
-            case 4:
-                quanto_precisa_passar_por_media();
-                break;
-            case 0:
-                printf("Saindo...\n");
-                break;
-            default:
-                printf("Opção inválida. Digite um número válido.\n");
+            printf("CRA: %.2f\n", calcular_CRA(notas, quant));
+            break;
+        }
+        case 3:
+            quanto_precisa_tirar_na_final();
+            break;
+        case 4:
+            quanto_precisa_passar_por_media();
+            break;
+        case 0:
+            printf("Saindo...\n");
+            break;
+        default:
+            printf("Opção inválida. Digite um número válido.\n");
         }
     } while (opcao != 0);
 
